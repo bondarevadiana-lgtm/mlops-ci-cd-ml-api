@@ -23,7 +23,7 @@
    venv\Scripts\activate     # для Windows
 
    source venv/bin/activate  # для Linux/macOS
-   ```bash
+   
 
 2. Встановіть компонентів
 
@@ -31,16 +31,15 @@
 
    ```bash
    pip install -r requirements.txt
-   ```bash
 
 3. Навчання та запуск
    Виконайте скрипт для генерації файлу моделі, після чого запустіть локальний сервер :
    ```bash
    python -m ml.train
    uvicorn app.maiin:app --reload
-   ```bash
+  
 
-Доступ до розгорнутого сервісу
+## Доступ до розгорнутого сервісу
 Проект публікується за наступними посиланнями
 
 - Api endpoint : https://mlops-ci-cd-ml-api.onrender.com
