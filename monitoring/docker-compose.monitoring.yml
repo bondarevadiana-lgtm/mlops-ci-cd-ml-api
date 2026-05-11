@@ -1,0 +1,42 @@
+version: "3.9"
+
+services:
+  ml-api:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: ml-api-service
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - APP_PORT=8000
+      - LOG_LEVEL=20
+    networks:
+      - mlops-pipeline
+
+  prometheus:
+    image: prom/prometheus:v2.55.0
+    container_name: prometheus-monitor
+    restart: always
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--web.enable-lifecycle"
+      - "--storage.tsdb.retention.time=15d"
+    depends_on:
+      - ml-api
+    networks:
+      - mlops-pipeline
+
+networks:
+  mlops-pipeline:
+    driver: bridge
+
+volumes:
+  prometheus_data:

@@ -1,10 +1,10 @@
 import pytest
 from fastapi.testclient import TestClient
-from ml.train import IrisTrainer, DEFAULT_SAVE_PATH
-from app.main import app, FILE_LOCATION
+from app.main import app, MODEL_PATH
+from ml.train import IrisTrainer
 
-if not FILE_LOCATION.exists():
-    trainer = IrisTrainer(target_path=FILE_LOCATION)
+if not MODEL_PATH.exists():
+    trainer = IrisTrainer(model_path=MODEL_PATH)
     trainer.execute()
 
 @pytest.fixture
@@ -13,18 +13,22 @@ def api_client():
         yield client
 
 def test_system_info_route(api_client):
+    """Тест ендпоінту / (root)"""
     response = api_client.get("/")
     assert response.status_code == 200
-    assert response.json()["ready"] is True
+    assert response.json()["model_status"] == "active"
 
 def test_monitoring_endpoint(api_client):
+    """Тест ендпоінту /check-up"""
     response = api_client.get("/check-up")
     assert response.status_code == 200
     data = response.json()
     assert data["status"] == "online"
-    assert "storage_path" in data
+    assert data["model_loaded"] is True
+    assert data["drift_ready"] is True
 
 def test_inference_logic_setosa(api_client):
+    """Тест передбачення для сорту setosa"""
     sample_data = {
         "sepal_length": 5.1,
         "sepal_width": 3.5,
@@ -40,6 +44,7 @@ def test_inference_logic_setosa(api_client):
     assert result["class_id"] == 0
 
 def test_validation_error_handling(api_client):
-    bad_payload = {"sepal_length": "invalid_data"}
+    """Тест на некоректні типи даних"""
+    bad_payload = {"sepal_length": "not-a-number"}
     response = api_client.post("/predict", json=bad_payload)
     assert response.status_code == 422
